@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, InsertStockCache, users, watchlist, portfolio, stockCache, priceHistory } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,90 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getStockByTicker(ticker: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(stockCache).where(eq(stockCache.ticker, ticker.toUpperCase())).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserWatchlist(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(watchlist).where(eq(watchlist.userId, userId));
+}
+
+export async function addToWatchlist(userId: number, ticker: string, companyName?: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(watchlist).values({
+    userId,
+    ticker: ticker.toUpperCase(),
+    companyName,
+  });
+}
+
+export async function removeFromWatchlist(userId: number, ticker: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(watchlist).where(
+    and(eq(watchlist.userId, userId), eq(watchlist.ticker, ticker.toUpperCase()))
+  );
+}
+
+export async function getUserPortfolio(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(portfolio).where(eq(portfolio.userId, userId));
+}
+
+export async function addToPortfolio(userId: number, ticker: string, shares: number, averageCost: number, companyName?: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(portfolio).values({
+    userId,
+    ticker: ticker.toUpperCase(),
+    shares,
+    averageCost,
+    companyName,
+  });
+}
+
+export async function updatePortfolioHolding(portfolioId: number, shares: number, averageCost: number, currentPrice?: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(portfolio).set({
+    shares,
+    averageCost,
+    currentPrice,
+  }).where(eq(portfolio.id, portfolioId));
+}
+
+export async function removeFromPortfolio(portfolioId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(portfolio).where(eq(portfolio.id, portfolioId));
+}
+
+export async function updateStockCache(ticker: string, data: Partial<InsertStockCache>) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getStockByTicker(ticker);
+  if (existing) {
+    await db.update(stockCache).set(data).where(eq(stockCache.ticker, ticker.toUpperCase()));
+  } else {
+    await db.insert(stockCache).values({
+      ticker: ticker.toUpperCase(),
+      ...data,
+    });
+  }
+}
+
+export async function getPriceHistory(ticker: string, limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(priceHistory)
+    .where(eq(priceHistory.ticker, ticker.toUpperCase()))
+    .orderBy(priceHistory.date)
+    .limit(limit);
+}

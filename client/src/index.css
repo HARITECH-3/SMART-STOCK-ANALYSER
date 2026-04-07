@@ -76,6 +76,10 @@
   --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.623 0.214 259.815);
+  /* Financial colors */
+  --positive: oklch(0.6 0.15 142);
+  --negative: oklch(0.55 0.2 25);
+  --neutral: oklch(0.55 0.05 0);
 }
 
 .dark {
@@ -111,6 +115,10 @@
   --sidebar-accent-foreground:  oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.488 0.243 264.376);
+  /* Financial colors */
+  --positive: oklch(0.7 0.15 142);
+  --negative: oklch(0.6 0.2 25);
+  --neutral: oklch(0.6 0.05 0);
 }
 
 @layer base {
@@ -173,5 +181,44 @@
       padding-right: 2rem;
       max-width: 1280px; /* Standard content width */
     }
+  }
+
+  /* Financial data styling */
+  .text-positive {
+    @apply text-green-600 dark:text-green-400;
+  }
+
+  .text-negative {
+    @apply text-red-600 dark:text-red-400;
+  }
+
+  .bg-positive-subtle {
+    @apply bg-green-50 dark:bg-green-950;
+  }
+
+  .bg-negative-subtle {
+    @apply bg-red-50 dark:bg-red-950;
+  }
+
+  /* Price display */
+  .price-large {
+    @apply text-4xl font-bold tracking-tight;
+  }
+
+  .price-medium {
+    @apply text-2xl font-semibold;
+  }
+
+  .price-small {
+    @apply text-lg font-semibold;
+  }
+
+  /* Badge styling */
+  .badge-positive {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 text-xs font-semibold;
+  }
+
+  .badge-negative {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 text-xs font-semibold;
   }
 }
